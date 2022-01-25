@@ -5,6 +5,7 @@ from PIL import ImageTk,Image,ImageChops,ImageFilter
 from tkinter import filedialog
 from tkinter import colorchooser
 import numpy as np
+#from matplotlib import pyplot as plt
 
 root = Tk()
 root.title('Image Editor')
@@ -89,8 +90,22 @@ def rotate_right90():
     global image_on_canvas
     global canvas_width
     global canvas_height
+
+    pillow_image_arr = np.array(pillow_image)
+    w = pillow_image_arr.shape[1] 
+    h = pillow_image_arr.shape[0] 
+    rotated_img = np.zeros_like(pillow_image_arr)
+    rotated_img.shape = (w,h,pillow_image_arr.shape[2])
+
+    for height in range (h):
+        for width in range (w):
+            rotated_img[width,h-1-height,0] = pillow_image_arr[height,width,0]
+            rotated_img[width,h-1-height,1] = pillow_image_arr[height,width,1]
+            rotated_img[width,h-1-height,2] = pillow_image_arr[height,width,2] 
+     
+    pillow_image = Image.fromarray(rotated_img)
     
-    pillow_image = pillow_image.rotate(270)
+    #pillow_image = pillow_image.rotate(270)
     image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
@@ -111,7 +126,21 @@ def rotate_left90():
     global canvas_width
     global canvas_height
     
-    pillow_image = pillow_image.rotate(90)
+    pillow_image_arr = np.array(pillow_image)
+    w = pillow_image_arr.shape[1] 
+    h = pillow_image_arr.shape[0] 
+    rotated_img = np.zeros_like(pillow_image_arr)
+    rotated_img.shape = (w,h,pillow_image_arr.shape[2])
+
+    for height in range (h):
+        for width in range (w):
+            rotated_img[w-width-1,height,0] = pillow_image_arr[height,width,0]
+            rotated_img[w-width-1,height,1] = pillow_image_arr[height,width,1]
+            rotated_img[w-width-1,height,2] = pillow_image_arr[height,width,2] 
+     
+    pillow_image = Image.fromarray(rotated_img)
+
+    #pillow_image = pillow_image.rotate(90)
     image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
@@ -132,7 +161,19 @@ def flip_left_right():
     global canvas_width
     global canvas_height
     
-    pillow_image = pillow_image.transpose(Image.FLIP_LEFT_RIGHT)
+    pillow_image_arr = np.array(pillow_image)
+    w = pillow_image_arr.shape[1] -1
+    h = pillow_image_arr.shape[0] 
+    flipped_img = np.zeros_like(pillow_image_arr)
+
+    for height in range (h):
+        for width in range (w):
+            flipped_img[height,width,0] = pillow_image_arr[height,w-width,0]
+            flipped_img[height,width,1] = pillow_image_arr[height,w-width,1]
+            flipped_img[height,width,2] = pillow_image_arr[height,w-width,2]
+
+    #pillow_image = pillow_image.transpose(Image.FLIP_LEFT_RIGHT)
+    pillow_image = Image.fromarray(flipped_img)
     image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
@@ -153,7 +194,18 @@ def flip_top_bottom():
     global canvas_width
     global canvas_height
     
-    pillow_image = pillow_image.transpose(Image.FLIP_TOP_BOTTOM)
+    pillow_image_arr = np.array(pillow_image)
+    w = pillow_image_arr.shape[1] 
+    h = pillow_image_arr.shape[0] - 1
+    flipped_img = np.zeros_like(pillow_image_arr)
+
+    for height in range (h):
+        for width in range (w):
+            flipped_img[height,width,0] = pillow_image_arr[h-height,width,0]
+            flipped_img[height,width,1] = pillow_image_arr[h-height,width,1]
+            flipped_img[height,width,2] = pillow_image_arr[h-height,width,2]  
+    #pillow_image = pillow_image.transpose(Image.FLIP_TOP_BOTTOM)
+    pillow_image = Image.fromarray(flipped_img)
     image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
@@ -167,15 +219,35 @@ flip_tb_button = Button(frame_right,text="Flip Top-Bottom",bg="black",command=fl
 flip_tb_button.grid(row=2,column=1,padx=10,pady=10)
 #rotate_right.place(relx=0.8,y=120,anchor=E)
 
-def greyscale():
+def b_w():
     global pillow_image
+    global pillow_image_arr
     global image_tk
     global resized_image_tk
     global image_on_canvas
     global canvas_width
     global canvas_height
     
-    pillow_image = pillow_image.convert('L')
+    pillow_image_arr = np.array(pillow_image)
+
+    for height in range(pillow_image_arr.shape[0]):
+        for width in range(pillow_image_arr.shape[1]):
+        
+            if pillow_image_arr[height,width,0] >126 or pillow_image_arr[height,width,1] >126 or pillow_image_arr[height,width,2] >126:
+                pillow_image_arr[height,width,0]= pillow_image_arr[height,width,1]=pillow_image_arr[height,width,2]= 255
+            else:
+                pillow_image_arr[height,width,0]= pillow_image_arr[height,width,1]=pillow_image_arr[height,width,2]= 0
+
+    '''is_png = pillow_image_arr.shape[2]==4
+    if(is_png):
+        alpha_ch = pillow_image_arr[:,:,3]
+        bw_image_arr = np.dstack((pillow_image_arr,alpha_ch))
+    else:
+        bw_image_arr = pillow_image_arr
+
+    pillow_image = Image.fromarray(bw_image_arr)'''
+    pillow_image = Image.fromarray(pillow_image_arr)
+    #pillow_image = pillow_image.convert('L')
     image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
@@ -184,10 +256,40 @@ def greyscale():
     else:
         image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
    
-button_greyscale = Button(frame_right,text="Convert to Black & White",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_greyscale.grid(row=3,columnspan=2,padx=10,pady=10)
+button_b_w = Button(frame_right,text="Convert to Black & White",bg="black",command=b_w,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_b_w.grid(row=3,column=0,padx=10,pady=10)
 #button_greyscale.place(relx=0.5,y=160,anchor=E)
 
+def greyscale():
+    global pillow_image
+    global pillow_image_arr
+    global image_tk
+    global resized_image_tk
+    global image_on_canvas
+    global canvas_width
+    global canvas_height
+    
+    pillow_image_arr = np.array(pillow_image)
+
+    #Colour Manipulation
+    pillow_image_arr = 0.2126*pillow_image_arr[:,:,0] + 0.7152*pillow_image_arr[:,:,1] + 0.0722*pillow_image_arr[:,:,2]
+    
+    pillow_image = Image.fromarray(pillow_image_arr)
+    
+    image_tk = ImageTk.PhotoImage(pillow_image)
+    #size_image = list(image_tk.size())
+    if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
+        resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
+        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+    else:
+        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
+   
+button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_greyscale.grid(row=3,column=1,padx=10,pady=10)
+
+'''
+show_grid_button = Button(frame_right,text="Show Grid",bg="black",command=show_grid,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+show_grid_button.grid(row=6,column=0,padx=10,pady=10)  '''
 
 #Entry Boxes
 cropping_parametersx1 = Entry(frame_right)
@@ -215,6 +317,7 @@ def crop():
     global canvas_width
     global canvas_height
     
+    #Using slicing method
     pillow_image_arr = np.array(pillow_image)
     pillow_image_arr = pillow_image_arr[int(cropping_parametersy1.get()):int(cropping_parametersy2.get()),int(cropping_parametersx1.get()):int(cropping_parametersx2.get())]
     pillow_image = Image.fromarray(pillow_image_arr)
@@ -230,7 +333,7 @@ def crop():
     cropping_parametersy1.delete(0,END)
     cropping_parametersx2.delete(0,END)
     cropping_parametersy2.delete(0,END)
-   
+
 button_crop = Button(frame_right,text="Crop",bg="black",command=crop,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 button_crop.grid(row=6,columnspan=2,padx=10,pady=10)
 
@@ -267,4 +370,13 @@ def invert():
 button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 button_invert.grid(row=7,columnspan=2,padx=10,pady=10)
 
+def save_file():
+    global pillow_image
+    file_name = filedialog.asksaveasfile(mode='w', defaultextension=".jpeg", filetypes=[("JPG",".jpg"),("PNG",".png"),("JPEG",".jpeg")])
+    if not file_name:
+        return
+    pillow_image.save(file_name)
+
+button_save = Button(frame_right,text="Save this image",bg="black",command=save_file,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_save.grid(row=8,columnspan=2,padx=10,pady=10)
 root.mainloop()

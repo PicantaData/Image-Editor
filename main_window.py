@@ -5,7 +5,7 @@ from PIL import ImageTk,Image,ImageChops,ImageFilter
 from tkinter import filedialog
 from tkinter import colorchooser
 import numpy as np
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 root = Tk()
 root.title('Image Editor')
@@ -291,6 +291,14 @@ button_greyscale.grid(row=3,column=1,padx=10,pady=10)
 show_grid_button = Button(frame_right,text="Show Grid",bg="black",command=show_grid,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 show_grid_button.grid(row=6,column=0,padx=10,pady=10)  '''
 
+def open_plot():
+    global pillow_image
+    plt.subplot(111)
+    plt.imshow(pillow_image)
+    plt.show()
+
+button_show_grid = Button(frame_right,text="See Reference Scale",bg="black",command=open_plot,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_show_grid.grid(row=6,column=0,padx=10,pady=10)
 #Entry Boxes
 cropping_parametersx1 = Entry(frame_right)
 cropping_parametersx1.grid(row=4,column=0,padx=10,pady=10)
@@ -335,7 +343,7 @@ def crop():
     cropping_parametersy2.delete(0,END)
 
 button_crop = Button(frame_right,text="Crop",bg="black",command=crop,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_crop.grid(row=6,columnspan=2,padx=10,pady=10)
+button_crop.grid(row=6,column=1,padx=10,pady=10)
 
 def invert():
     global pillow_image
