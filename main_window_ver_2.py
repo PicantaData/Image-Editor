@@ -1,11 +1,10 @@
-from email.mime import image
 from logging import root
 from tkinter import *
 from PIL import ImageTk,Image,ImageChops,ImageFilter
 from tkinter import filedialog
 from tkinter import colorchooser
 import numpy as np
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 root = Tk()
 root.title('Image Editor')
@@ -29,9 +28,9 @@ frame_left.grid_propagate(0)
 #LEFT-FRAME_CANVAS
 global canvas_width
 global canvas_height
-canvas_width = int(0.95*f_left_width)
-canvas_height = int(0.9*f_left_height)
-img_canvas = Canvas(frame_left,width=canvas_width,height=canvas_height, bg="white")
+canvas_width = 0.95*f_left_width
+canvas_height = 0.9*f_left_height
+img_canvas = Canvas(frame_left,width=canvas_width,height=canvas_height, bg="white", highlightbackground="gray",cursor="plus")
 img_canvas.grid(row=0,column=0,pady=5)
 #img_canvas.place(relx=0.5,anchor=N)
 img_canvas.grid_propagate(0)
@@ -53,70 +52,120 @@ frame_right.grid(row=0,column=1)
 frame_right.grid_propagate(0)
 
 #RIGHT-FRAME-TOOLS
+def resize(original_img):
+    global canvas_height,canvas_width
+    
+    aspect_ratio = pillow_image.size[1]/pillow_image.size[0]
+    new_width = canvas_height/aspect_ratio
+    new_height = canvas_width*aspect_ratio
+    if(original_img.size[1] >= canvas_height and original_img.size[0] > canvas_width):
+        if(new_width >= canvas_width):
+            resized_img=ImageTk.PhotoImage(original_img.resize((int(canvas_width),int(new_height))))
+            return resized_img
+        else:
+            resized_img=ImageTk.PhotoImage(original_img.resize((int(new_width),int(canvas_height))))
+            return resized_img
+    elif(original_img.size[1] >= canvas_height):
+        resized_img=ImageTk.PhotoImage(original_img.resize((int(new_width),int(canvas_height))))
+        return resized_img
+    elif(original_img.size[0] >= canvas_width):
+        resized_img=ImageTk.PhotoImage(original_img.resize((int(canvas_width),int(new_height))))
+        return resized_img
+    else:
+        resized_img = ImageTk.PhotoImage(original_img)
+        return resized_img
 
 #IMPORT-BUTTON
 def import_img():
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global pillow_image,image_tk,resized_image_tk,image_on_canvas,canvas_width,canvas_height,aspect_ratio
     
     frame_left.imgaddress = filedialog.askopenfilename(initialdir="/",title="Select an image",filetypes=(("jpg files","*.jpg"),("png files", "*.png"),("jpeg files","*.jpeg")))
+    
     pillow_image = Image.open(frame_left.imgaddress)
+    
     image_tk = ImageTk.PhotoImage(pillow_image)
-    #size_image = list(image_tk.size())
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    #image_tk = ImageTk.PhotoImage(pillow_image)
+    '''
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
 
-    #Label mehod
-    #open_image = ImageTk.PhotoImage(Image.open(frame_left.imgaddress))
-    #open_image_label = Label(img_canvas,image= open_image_canvas)
-    #open_image_label.grid(row=0,column=0,padx=10,pady=10)
-      
 insert_img_button = Button(frame_right, text="Import Image",command = import_img,bg="black",fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 insert_img_button.grid(row=0,column=0,columnspan=2,padx=0.35*f_right_width,pady=20)
-#insert_img_button.place(relx=0.5,anchor=N,y=20)
+
 
 #EDITING-BUTTONS
-def rotate_right90():
+def rotate(var):
     global pillow_image
     global image_tk
     global resized_image_tk
     global image_on_canvas
     global canvas_width
     global canvas_height
-
-    pillow_image_arr = np.array(pillow_image)
-    w = pillow_image_arr.shape[1] 
-    h = pillow_image_arr.shape[0] 
-    rotated_img = np.zeros_like(pillow_image_arr)
-    rotated_img.shape = (w,h,pillow_image_arr.shape[2])
-
-    for height in range (h):
-        for width in range (w):
-            rotated_img[width,h-1-height,0] = pillow_image_arr[height,width,0]
-            rotated_img[width,h-1-height,1] = pillow_image_arr[height,width,1]
-            rotated_img[width,h-1-height,2] = pillow_image_arr[height,width,2] 
-     
-    pillow_image = Image.fromarray(rotated_img)
+    global pillow_image_copy
     
-    #pillow_image = pillow_image.rotate(270)
-    image_tk = ImageTk.PhotoImage(pillow_image)
-    #size_image = list(image_tk.size())
+    pillow_image_copy = pillow_image.copy()
+    pillow_image_copy = pillow_image_copy.rotate(rotate_.get(),expand=True,resample=Image.NEAREST)
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image_copy)
+    
+    if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
+        resized_image_tk = ImageTk.PhotoImage(pillow_image_copy.resize((canvas_width,canvas_height)))
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    else:
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
+rotate_ = Scale(frame_right,from_=-180,to=180,orient=HORIZONTAL,command=rotate)
+rotate_.grid(row=1,column=0,padx=10,pady=10)
+
+def rotate_final():
+    global pillow_image
+    global image_tk
+    global resized_image_tk
+    global image_on_canvas
+    global canvas_width
+    global canvas_height
+    global pillow_image_copy
+    
+    pillow_image = pillow_image_copy
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
+    
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
+rotate_final_button = Button(frame_right,text="Update_rotated",bg="black",command=rotate_final,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+rotate_final_button.grid(row=1,column=1,padx=10,pady=10)
+##
+'''def rotate_right90():
+    global pillow_image
+    global image_tk
+    global resized_image_tk
+    global image_on_canvas
+    global canvas_width
+    global canvas_height
+    
+    pillow_image = pillow_image.rotate(270)
+    image_tk = ImageTk.PhotoImage(pillow_image)
+    
+    if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
+        resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    else:
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
 
 rotate_right = Button(frame_right,text="Rotate Right",bg="black",command=rotate_right90,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 rotate_right.grid(row=1,column=1,padx=10,pady=10)
-#rotate_right.place(relx=0.8,y=80,anchor=E)
 
 def rotate_left90():
     global pillow_image
@@ -125,34 +174,19 @@ def rotate_left90():
     global image_on_canvas
     global canvas_width
     global canvas_height
-    
-    pillow_image_arr = np.array(pillow_image)
-    w = pillow_image_arr.shape[1] 
-    h = pillow_image_arr.shape[0] 
-    rotated_img = np.zeros_like(pillow_image_arr)
-    rotated_img.shape = (w,h,pillow_image_arr.shape[2])
 
-    for height in range (h):
-        for width in range (w):
-            rotated_img[w-width-1,height,0] = pillow_image_arr[height,width,0]
-            rotated_img[w-width-1,height,1] = pillow_image_arr[height,width,1]
-            rotated_img[w-width-1,height,2] = pillow_image_arr[height,width,2] 
-     
-    pillow_image = Image.fromarray(rotated_img)
-
-    #pillow_image = pillow_image.rotate(90)
+    pillow_image = pillow_image.rotate(90)
     image_tk = ImageTk.PhotoImage(pillow_image)
-    #size_image = list(image_tk.size())
+    
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
 
-rotate_left = Button(frame_right,text="Rotate Left",bg="black",command=rotate_left90,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-rotate_left.grid(row=1,column=0,padx=10,pady=10)
-#rotate_left.place(relx=0.2,y=80,anchor=W)
-
+rotate_left = Button(frame_right,text="Rotate Left",bg="black",command=rotate_left90,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,)
+rotate_left.grid(row=1,column=0,padx=8,pady=10)
+'''
 def flip_left_right():
     global pillow_image
     global image_tk
@@ -160,28 +194,18 @@ def flip_left_right():
     global image_on_canvas
     global canvas_width
     global canvas_height
-    
-    pillow_image_arr = np.array(pillow_image)
-    w = pillow_image_arr.shape[1] -1
-    h = pillow_image_arr.shape[0] 
-    flipped_img = np.zeros_like(pillow_image_arr)
 
-    for height in range (h):
-        for width in range (w):
-            flipped_img[height,width,0] = pillow_image_arr[height,w-width,0]
-            flipped_img[height,width,1] = pillow_image_arr[height,w-width,1]
-            flipped_img[height,width,2] = pillow_image_arr[height,w-width,2]
-
-    #pillow_image = pillow_image.transpose(Image.FLIP_LEFT_RIGHT)
-    pillow_image = Image.fromarray(flipped_img)
-    image_tk = ImageTk.PhotoImage(pillow_image)
+    pillow_image = pillow_image.transpose(Image.FLIP_LEFT_RIGHT)
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
 flip_lr_button = Button(frame_right,text="Flip Left-Right",bg="black",command=flip_left_right,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 flip_lr_button.grid(row=2,column=0,padx=10,pady=10)
 #rotate_left.place(relx=0.2,y=120,anchor=W)
@@ -193,72 +217,22 @@ def flip_top_bottom():
     global image_on_canvas
     global canvas_width
     global canvas_height
-    
-    pillow_image_arr = np.array(pillow_image)
-    w = pillow_image_arr.shape[1] 
-    h = pillow_image_arr.shape[0] - 1
-    flipped_img = np.zeros_like(pillow_image_arr)
-
-    for height in range (h):
-        for width in range (w):
-            flipped_img[height,width,0] = pillow_image_arr[h-height,width,0]
-            flipped_img[height,width,1] = pillow_image_arr[h-height,width,1]
-            flipped_img[height,width,2] = pillow_image_arr[h-height,width,2]  
-    #pillow_image = pillow_image.transpose(Image.FLIP_TOP_BOTTOM)
-    pillow_image = Image.fromarray(flipped_img)
-    image_tk = ImageTk.PhotoImage(pillow_image)
+     
+    pillow_image = pillow_image.transpose(Image.FLIP_TOP_BOTTOM)
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
 
 flip_tb_button = Button(frame_right,text="Flip Top-Bottom",bg="black",command=flip_top_bottom,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 flip_tb_button.grid(row=2,column=1,padx=10,pady=10)
 #rotate_right.place(relx=0.8,y=120,anchor=E)
-
-def b_w():
-    global pillow_image
-    global pillow_image_arr
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
-    
-    pillow_image_arr = np.array(pillow_image)
-
-    for height in range(pillow_image_arr.shape[0]):
-        for width in range(pillow_image_arr.shape[1]):
-        
-            if pillow_image_arr[height,width,0] >126 or pillow_image_arr[height,width,1] >126 or pillow_image_arr[height,width,2] >126:
-                pillow_image_arr[height,width,0]= pillow_image_arr[height,width,1]=pillow_image_arr[height,width,2]= 255
-            else:
-                pillow_image_arr[height,width,0]= pillow_image_arr[height,width,1]=pillow_image_arr[height,width,2]= 0
-
-    '''is_png = pillow_image_arr.shape[2]==4
-    if(is_png):
-        alpha_ch = pillow_image_arr[:,:,3]
-        bw_image_arr = np.dstack((pillow_image_arr,alpha_ch))
-    else:
-        bw_image_arr = pillow_image_arr
-
-    pillow_image = Image.fromarray(bw_image_arr)'''
-    pillow_image = Image.fromarray(pillow_image_arr)
-    #pillow_image = pillow_image.convert('L')
-    image_tk = ImageTk.PhotoImage(pillow_image)
-    #size_image = list(image_tk.size())
-    if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
-        resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
-    else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-   
-button_b_w = Button(frame_right,text="Convert to Black & White",bg="black",command=b_w,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_b_w.grid(row=3,column=0,padx=10,pady=10)
-#button_greyscale.place(relx=0.5,y=160,anchor=E)
 
 def greyscale():
     global pillow_image
@@ -269,28 +243,32 @@ def greyscale():
     global canvas_width
     global canvas_height
     
-    pillow_image_arr = np.array(pillow_image)
-
-    #Colour Manipulation
-    pillow_image_arr = 0.2126*pillow_image_arr[:,:,0] + 0.7152*pillow_image_arr[:,:,1] + 0.0722*pillow_image_arr[:,:,2]
-    
-    pillow_image = Image.fromarray(pillow_image_arr)
-    
-    image_tk = ImageTk.PhotoImage(pillow_image)
+    pillow_image = pillow_image.convert('L')
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-   
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
 button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_greyscale.grid(row=3,column=1,padx=10,pady=10)
+button_greyscale.grid(row=3,columnspan=2,padx=10,pady=10)
 
 '''
 show_grid_button = Button(frame_right,text="Show Grid",bg="black",command=show_grid,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 show_grid_button.grid(row=6,column=0,padx=10,pady=10)  '''
 
+def open_plot():
+    global pillow_image
+    plt.subplot(111)
+    plt.imshow(pillow_image)
+    plt.show()
+
+button_show_grid = Button(frame_right,text="See Reference Scale",bg="black",command=open_plot,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_show_grid.grid(row=6,column=0,padx=10,pady=10)
 #Entry Boxes
 cropping_parametersx1 = Entry(frame_right)
 cropping_parametersx1.grid(row=4,column=0,padx=10,pady=10)
@@ -316,26 +294,28 @@ def crop():
     global image_on_canvas
     global canvas_width
     global canvas_height
-    
+    plt.close()
     #Using slicing method
     pillow_image_arr = np.array(pillow_image)
     pillow_image_arr = pillow_image_arr[int(cropping_parametersy1.get()):int(cropping_parametersy2.get()),int(cropping_parametersx1.get()):int(cropping_parametersx2.get())]
     pillow_image = Image.fromarray(pillow_image_arr)
-    image_tk = ImageTk.PhotoImage(pillow_image)
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-    
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
     cropping_parametersx1.delete(0,END)
     cropping_parametersy1.delete(0,END)
     cropping_parametersx2.delete(0,END)
     cropping_parametersy2.delete(0,END)
 
 button_crop = Button(frame_right,text="Crop",bg="black",command=crop,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_crop.grid(row=6,columnspan=2,padx=10,pady=10)
+button_crop.grid(row=6,column=1,padx=10,pady=10)
 
 def invert():
     global pillow_image
@@ -358,25 +338,27 @@ def invert():
         inv_arr = inv_colours_arr
     
     pillow_image = Image.fromarray(inv_arr)
-    
-    image_tk = ImageTk.PhotoImage(pillow_image)
+    resized_image_tk = resize(pillow_image)
+    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    '''image_tk = ImageTk.PhotoImage(pillow_image)
     #size_image = list(image_tk.size())
     if (image_tk.width!= canvas_width or image_tk.height!=canvas_height):
         resized_image_tk = ImageTk.PhotoImage(pillow_image.resize((canvas_width,canvas_height)))
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
     else:
-        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=image_tk)
-   
+        image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=image_tk)
+    '''
 button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 button_invert.grid(row=7,columnspan=2,padx=10,pady=10)
 
 def save_file():
     global pillow_image
-    file_name = filedialog.asksaveasfile(mode='w', defaultextension=".jpeg", filetypes=[("JPG",".jpg"),("PNG",".png"),("JPEG",".jpeg")])
+    file_name = filedialog.asksaveasfile(mode='w', defaultextension=".jpeg", filetypes=[("JPG File",".jpg"),("PNG File",".png"),("JPEG File",".jpeg")])
     if not file_name:
         return
     pillow_image.save(file_name)
 
 button_save = Button(frame_right,text="Save this image",bg="black",command=save_file,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 button_save.grid(row=8,columnspan=2,padx=10,pady=10)
+
 root.mainloop()
