@@ -75,18 +75,40 @@ def resize(original_img):
         resized_img = ImageTk.PhotoImage(original_img)
         return resized_img
 
-#TOOLS
+#ENABLE TOOLS
+def enable():
+    sharpen_["state"] = NORMAL
+    contrast_["state"] = NORMAL
+    bright_["state"] = NORMAL
+    rotate_["state"] = NORMAL
+    sat_["state"] = NORMAL
+    rotate_final_button["state"] = NORMAL
+    flip_lr_button["state"] = NORMAL
+    flip_tb_button["state"] = NORMAL
+    button_greyscale["state"] = NORMAL
+    button_invert["state"] = NORMAL
+    button_crop["state"] = NORMAL
+    apply_change_button["state"] = NORMAL
+    button_save["state"] = NORMAL
+    rotate_.set(0)
+    bright_.set(10)
+    contrast_.set(8)
+    sharpen_.set(4)
+    sat_.set(10)
+    
+
 #IMPORT-BUTTON
 def import_img():
-    global pillow_image,image_tk,resized_image_tk,image_on_canvas,canvas_width,canvas_height,aspect_ratio
+    global pillow_image,pillow_image_copy,resized_image_tk,image_on_canvas,canvas_width,canvas_height
     
     frame_left.imgaddress = filedialog.askopenfilename(initialdir="/",title="Select an image",filetypes=(("jpg files","*.jpg"),("png files", "*.png"),("jpeg files","*.jpeg")))
     
     pillow_image = Image.open(frame_left.imgaddress)
-    
-    image_tk = ImageTk.PhotoImage(pillow_image)
+    pillow_image_copy = pillow_image.copy()
+    #image_tk = ImageTk.PhotoImage(pillow_image)
     resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+    enable()
 
 insert_img_button = Button(frame_right, text="Import Image",command = import_img,bg="black",fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
 insert_img_button.grid(row=0,column=0,columnspan=2,padx=0.35*f_right_width,pady=20)
@@ -95,133 +117,109 @@ insert_img_button.grid(row=0,column=0,columnspan=2,padx=0.35*f_right_width,pady=
 #EDITING-BUTTONS
 #ROTATE
 def rotate(var):
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
-    global pillow_image_copy
+    global pillow_image,pillow_image_copy,pillow_image_copy1
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
     
-    pillow_image_copy = pillow_image.copy()
-    pillow_image_copy = pillow_image_copy.rotate(-rotate_.get(),expand=True,resample=Image.NEAREST)
-    resized_image_tk = resize(pillow_image_copy)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    pillow_image_copy1 = pillow_image_copy.copy()
+    pillow_image_copy1 = pillow_image_copy1.rotate(-rotate_.get(),expand=True,resample=Image.NEAREST)
+    resized_image_tk = resize(pillow_image_copy1)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
 
-rotate_ = Scale(frame_right,from_=-180,to=180,orient=HORIZONTAL,command=rotate,label="Rotate")
+rotate_ = Scale(frame_right,from_=-180,to=180,orient=HORIZONTAL,command=rotate,label="Rotate",state='disabled')
 rotate_.grid(row=1,column=0,padx=10,pady=10)
 
 def rotate_final():
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
-    global pillow_image_copy
+    global pillow_image,pillow_image_copy,pillow_image_copy1
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
     
-    pillow_image = pillow_image_copy
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    pillow_image_copy = pillow_image_copy1
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     rotate_.set(0)
    
-rotate_final_button = Button(frame_right,text="Update Rotated Image",bg="black",command=rotate_final,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+rotate_final_button = Button(frame_right,text="Update Rotated Image",bg="black",command=rotate_final,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 rotate_final_button.grid(row=1,column=1,padx=10,pady=10)
 
 #FLIP
 def flip_left_right():
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global pillow_image,pillow_image_copy
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
 
-    pillow_image = pillow_image.transpose(Image.FLIP_LEFT_RIGHT)
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    pillow_image_copy = pillow_image_copy.transpose(Image.FLIP_LEFT_RIGHT)
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-flip_lr_button = Button(frame_right,text="Flip Left-Right",bg="black",command=flip_left_right,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+flip_lr_button = Button(frame_right,text="Flip Left-Right",bg="black",command=flip_left_right,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 flip_lr_button.grid(row=2,column=0,padx=10,pady=10)
 
 def flip_top_bottom():
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global pillow_image,pillow_image_copy
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
      
-    pillow_image = pillow_image.transpose(Image.FLIP_TOP_BOTTOM)
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    pillow_image_copy = pillow_image_copy.transpose(Image.FLIP_TOP_BOTTOM)
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-flip_tb_button = Button(frame_right,text="Flip Top-Bottom",bg="black",command=flip_top_bottom,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+flip_tb_button = Button(frame_right,text="Flip Top-Bottom",bg="black",command=flip_top_bottom,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 flip_tb_button.grid(row=2,column=1,padx=10,pady=10)
 
 #IMAGE-COLOUR
 def greyscale():
-    global pillow_image
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global pillow_image,pillow_image_copy
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
     
-    pillow_image = pillow_image.convert('L')
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    pillow_image_copy = pillow_image_copy.convert('L')
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_greyscale.grid(row=3,column=0,padx=10,pady=10)
+button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
+button_greyscale.grid(row=9,column=0,padx=10,pady=10)
 
 def sharpness(var):
     global pillow_image,pillow_image_copy
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global resized_image_tk, image_on_canvas
+    global canvas_width,canvas_height
     
-    img_sharp = ImageEnhance.Sharpness(pillow_image)
+    img_sharp = ImageEnhance.Sharpness(pillow_image_copy)
     pillow_image_copy = img_sharp.enhance(sharpen_.get()/4.0)
     resized_image_tk = resize(pillow_image_copy)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-sharpen_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=sharpness,tickinterval=2,label="Sharpness")
-sharpen_.set(4)
+sharpen_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=sharpness,label="Sharpness",state='disabled')
+#sharpen_.set(4)
 sharpen_.grid(row=3,column=1,padx=3,pady=10)
 
 def contrast(var):
     global pillow_image,pillow_image_copy
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global resized_image_tk,image_on_canvas
+    global canvas_width,canvas_height
     
-    img_cont = ImageEnhance.Contrast(pillow_image)
+    img_cont = ImageEnhance.Contrast(pillow_image_copy)
     pillow_image_copy = img_cont.enhance(contrast_.get()/8.0)
     resized_image_tk = resize(pillow_image_copy)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-contrast_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=contrast,label= "Contrast")
-contrast_.set(8)
+contrast_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=contrast,label= "Contrast",state='disabled')
+#contrast_.set(8)
 contrast_.grid(row=4,column=0,padx=3,pady=10)
 
 def brightness(var):
     global pillow_image,pillow_image_copy
-    global image_tk,resized_image_tk
-    global image_on_canvas
+    global resized_image_tk,image_on_canvas
     global canvas_width,canvas_height
     
-    img_bright = ImageEnhance.Brightness(pillow_image)
+    img_bright = ImageEnhance.Brightness(pillow_image_copy)
     pillow_image_copy = img_bright.enhance(bright_.get()/10.0)
     resized_image_tk = resize(pillow_image_copy)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-bright_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=brightness,label= "Brightness")
-bright_.set(10)
+bright_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=brightness,label= "Brightness",state='disabled')
+
 bright_.grid(row=4,column=1,padx=3,pady=10)
 
 def saturation(var):
@@ -230,90 +228,69 @@ def saturation(var):
     global image_on_canvas
     global canvas_width,canvas_height
     
-    img_sat = ImageEnhance.Color(pillow_image)
+    img_sat = ImageEnhance.Color(pillow_image_copy)
     pillow_image_copy = img_sat.enhance(sat_.get()/10.0)
     resized_image_tk = resize(pillow_image_copy)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-sat_ = Scale(frame_right,from_=0,to=30,orient=HORIZONTAL,command=saturation,label= "Saturation")
-sat_.set(10)
-sat_.grid(row=9,column=0,padx=10,pady=10)
+sat_ = Scale(frame_right,from_=0,to=30,orient=HORIZONTAL,command=saturation,label= "Saturation",state='disabled')
+#sat_.set(10)
+sat_.grid(row=3,column=0,padx=10,pady=10)
 
-def open_plot():
-    global pillow_image
-    plt.subplot(111)
-    plt.imshow(pillow_image)
-    plt.show()
-
-button_show_grid = Button(frame_right,text="See Reference Scale",bg="black",command=open_plot,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_show_grid.grid(row=7,column=0,padx=10,pady=10)
-
-#Entry Boxes
-cropping_parametersx1 = Entry(frame_right)
-cropping_parametersx1.grid(row=5,column=0,padx=10,pady=10)
-cropping_parametersx1.insert(0,"x coord. top-left")
-
-cropping_parametersy1 = Entry(frame_right)
-cropping_parametersy1.grid(row=5,column=1,padx=10,pady=10)
-cropping_parametersy1.insert(0,"y coord. top-left")
-
-cropping_parametersx2 = Entry(frame_right)
-cropping_parametersx2.grid(row=6,column=0,padx=10,pady=10)
-cropping_parametersx2.insert(0,"x coord. bottom-right")
-
-cropping_parametersy2 = Entry(frame_right)
-cropping_parametersy2.grid(row=6,column=1,padx=10,pady=10)
-cropping_parametersy2.insert(0,"y coord. bottom-right")
-
-def crop():
-    global pillow_image
-    global pillow_image_arr
-    global image_tk
-    global resized_image_tk
-    global image_on_canvas
-    global canvas_width
-    global canvas_height
-    plt.close()
-    #Using slicing method
-    pillow_image_arr = np.array(pillow_image)
-    pillow_image_arr = pillow_image_arr[int(cropping_parametersy1.get()):int(cropping_parametersy2.get()),int(cropping_parametersx1.get()):int(cropping_parametersx2.get())]
-    pillow_image = Image.fromarray(pillow_image_arr)
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+#CROP_AREA_RECTANGLE
+def select_area():
+    global rect
     
-    cropping_parametersx1.delete(0,END)
-    cropping_parametersy1.delete(0,END)
-    cropping_parametersx2.delete(0,END)
-    cropping_parametersy2.delete(0,END)
+    def on_press(event):
+        global Start_X,Start_Y,rect,image_on_canvas
+        Start_X = img_canvas.canvasx(event.x)
+        Start_Y = img_canvas.canvasy(event.y)
+        img_canvas.delete(rect)
+        
+    def in_motion(event):
+        global Start_X,Start_Y,cur_X,cur_Y,rect,image_on_canvas
+        cur_X = img_canvas.canvasx(event.x)
+        cur_Y = img_canvas.canvasy(event.y)
+        img_canvas.delete(rect)
+        rect= img_canvas.create_rectangle(Start_X,Start_Y,cur_X,cur_Y,outline='red')
+        img_canvas.tag_raise(rect,image_on_canvas)
 
-button_crop = Button(frame_right,text="Crop",bg="black",command=crop,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
-button_crop.grid(row=7,column=1,padx=10,pady=10)
+    def on_release(event):
+        global Start_Y,Start_X,cur_Y,cur_X,pillow_image,pillow_image_copy,image_on_canvas,resized_image_tk,rect
+        ht_ratio = resized_image_tk.height()/pillow_image_copy.size[1]
+        wd_ratio = resized_image_tk.width()/pillow_image_copy.size[0]
+        crp_x1 = Start_X/wd_ratio
+        crp_y1 = Start_Y/ht_ratio
+        crp_x2 = cur_X/wd_ratio
+        crp_y2 = cur_Y//ht_ratio
+        rect = img_canvas.create_rectangle(Start_X,Start_Y,cur_X,cur_Y,outline='red')
+        img_canvas.tag_raise(rect,image_on_canvas)
+        
+        pillow_image_copy = pillow_image_copy.crop((crp_x1,crp_y1,crp_x2,crp_y2))
+        resized_image_tk = resize(pillow_image_copy)
+        image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
+
+    rect = img_canvas.create_rectangle(0,0,1,1,outline='red')
+    img_canvas.tag_raise(rect,image_on_canvas)
+
+    img_canvas.bind("<ButtonPress-1>",on_press)
+    img_canvas.bind("<B1-Motion>",in_motion)
+    img_canvas.bind("<ButtonRelease-1>",on_release)
+
+button_crop = Button(frame_right,text="Select Area to Crop",bg="black",command=select_area,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
+button_crop.grid(row=7,columnspan=2,padx=10,pady=10)
 
 def invert():
-    global pillow_image
-    global pillow_image_arr
-    global image_tk
+    global pillow_image,pillow_image_copy
     global resized_image_tk
     global image_on_canvas
-    global canvas_width
-    global canvas_height
+    global canvas_width, canvas_height
     
-    pillow_image_arr = np.array(pillow_image)
-    colours_arr = pillow_image_arr[:,:,:3]
-    inv_colours_arr = 255 - colours_arr
-
-    is_png = pillow_image_arr.shape[2]==4
-    if(is_png):
-        alpha_ch = pillow_image_arr[:,:,3]
-        inv_arr = np.dstack((inv_colours_arr,alpha_ch))
-    else:
-        inv_arr = inv_colours_arr
+    pillow_image_copy = ImageChops.invert(pillow_image_copy)
+    resized_image_tk = resize(pillow_image_copy)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-    pillow_image = Image.fromarray(inv_arr)
-    resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
-    
-button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 button_invert.grid(row=9,column=1,padx=10,pady=10)
 
 def apply_changes():
@@ -325,9 +302,9 @@ def apply_changes():
     sat_.set(10)
     pillow_image = pillow_image_copy
     resized_image_tk = resize(pillow_image)
-    image_on_canvas = img_canvas.create_image(canvas_width/2,0,anchor=N,image=resized_image_tk)
+    image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-apply_change_button = Button(frame_right,text="Apply Changes",bg="black",command=apply_changes,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+apply_change_button = Button(frame_right,text="Apply Changes",bg="black",command=apply_changes,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 apply_change_button.grid(row=10,column=0,padx=10,pady=10)
 
 
@@ -338,7 +315,7 @@ def save_file():
         return
     pillow_image.save(file_name)
 
-button_save = Button(frame_right,text="Save this image",bg="black",command=save_file,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED)
+button_save = Button(frame_right,text="Save this image",bg="black",command=save_file,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=10,pady=5,relief=RAISED,state='disabled')
 button_save.grid(row=10,column=1,padx=10,pady=10)
 
 root.mainloop()
