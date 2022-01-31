@@ -115,7 +115,7 @@ insert_img_button = Button(frame_right, text="Import Image",command = import_img
 insert_img_button.grid(row=0,column=0,columnspan=2,padx=0.35*f_right_width,pady=20)
 
 #EDITING-BUTTONS
-#ROTATE
+#FILTERS
 def rotate(var):
     global pillow_image,pillow_image_copy,pillow_image_copy1
     global resized_image_tk,image_on_canvas
@@ -168,35 +168,32 @@ flip_tb_button = Button(frame_right,text="Flip Top-Bottom",bg="black",command=fl
 flip_tb_button.grid(row=2,column=1,padx=5,pady=10)
 
 #IMAGE-COLOUR
-def saturation(var):
+def greyscale():
     global pillow_image,pillow_image_copy
     global resized_image_tk,image_on_canvas
     global canvas_width,canvas_height
     
     pillow_image_copy = pillow_image.copy()
-    img_sat = ImageEnhance.Color(pillow_image_copy)
-    pillow_image_copy = img_sat.enhance(sat_.get()/10.0)
+    pillow_image_copy = pillow_image_copy.convert('L')
     resized_image_tk = resize(pillow_image_copy)
     image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-sat_ = Scale(frame_right,from_=0,to=30,orient=HORIZONTAL,command=saturation,label= "Saturation",state='disabled')
-sat_.grid(row=3,column=0,padx=5,pady=10)
+button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=5,pady=5,relief=RAISED,state='disabled')
+button_greyscale.grid(row=3,column=0,padx=5,pady=10)
 
-
-def sharpness(var):
+def invert():
     global pillow_image,pillow_image_copy
-    global resized_image_tk, image_on_canvas
-    global canvas_width,canvas_height
+    global resized_image_tk,image_on_canvas
+    global canvas_width, canvas_height
     
-    pillow_image_copy = pillow_image.copy()
-    img_sharp = ImageEnhance.Sharpness(pillow_image_copy)
-    pillow_image_copy = img_sharp.enhance(sharpen_.get()/4.0)
-    resized_image_tk = resize(pillow_image_copy)
+    pillow_image = ImageChops.invert(pillow_image)
+    resized_image_tk = resize(pillow_image)
     image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-sharpen_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=sharpness,label="Sharpness",state='disabled')
-sharpen_.grid(row=3,column=1,padx=3,pady=10)
+button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=5,pady=5,relief=RAISED,state='disabled')
+button_invert.grid(row=3,column=1,padx=5,pady=10)
 
+#TONE
 def contrast(var):
     global pillow_image,pillow_image_copy
     global resized_image_tk,image_on_canvas
@@ -225,30 +222,34 @@ def brightness(var):
 bright_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=brightness,label= "Brightness",state='disabled')
 bright_.grid(row=4,column=1,padx=5,pady=10)
 
-def greyscale():
+def saturation(var):
     global pillow_image,pillow_image_copy
     global resized_image_tk,image_on_canvas
     global canvas_width,canvas_height
     
     pillow_image_copy = pillow_image.copy()
-    pillow_image_copy = pillow_image_copy.convert('L')
+    img_sat = ImageEnhance.Color(pillow_image_copy)
+    pillow_image_copy = img_sat.enhance(sat_.get()/10.0)
     resized_image_tk = resize(pillow_image_copy)
     image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-button_greyscale = Button(frame_right,text="Grey Scale",bg="black",command=greyscale,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=5,pady=5,relief=RAISED,state='disabled')
-button_greyscale.grid(row=5,column=0,padx=5,pady=10)
+sat_ = Scale(frame_right,from_=0,to=30,orient=HORIZONTAL,command=saturation,label= "Saturation",state='disabled')
+sat_.grid(row=5,column=0,padx=5,pady=10)
 
-def invert():
+
+def sharpness(var):
     global pillow_image,pillow_image_copy
-    global resized_image_tk,image_on_canvas
-    global canvas_width, canvas_height
+    global resized_image_tk, image_on_canvas
+    global canvas_width,canvas_height
     
-    pillow_image = ImageChops.invert(pillow_image)
-    resized_image_tk = resize(pillow_image)
+    pillow_image_copy = pillow_image.copy()
+    img_sharp = ImageEnhance.Sharpness(pillow_image_copy)
+    pillow_image_copy = img_sharp.enhance(sharpen_.get()/4.0)
+    resized_image_tk = resize(pillow_image_copy)
     image_on_canvas = img_canvas.create_image(0,0,anchor=NW,image=resized_image_tk)
     
-button_invert = Button(frame_right,text="Invert Colours",bg="black",command=invert,fg="white",activebackground="white",activeforeground="black",cursor="hand2",padx=5,pady=5,relief=RAISED,state='disabled')
-button_invert.grid(row=5,column=1,padx=5,pady=10)
+sharpen_ = Scale(frame_right,from_=0,to=20,orient=HORIZONTAL,command=sharpness,label="Sharpness",state='disabled')
+sharpen_.grid(row=5,column=1,padx=3,pady=10)
 
 #CROP_AREA_RECTANGLE
 def select_area():
