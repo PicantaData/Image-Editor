@@ -1,1 +1,1 @@
-pillow_image
+padx=10
