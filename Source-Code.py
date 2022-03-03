@@ -334,7 +334,7 @@ def txt_img():
                 
         pillow_image_copy = pillow_image.copy()
 
-        txt_font = ImageFont.truetype("arial.ttf",int(txt_y2-txt_y1))
+        txt_font = ImageFont.truetype("times.ttf",int(txt_y2-txt_y1))
         font_color = colorchooser.askcolor(title="Choose Font Colour")[1]
         txt = txt_entry.get()
         txt_on_img = ImageDraw.Draw(pillow_image_copy)
@@ -377,46 +377,45 @@ def gen_certi():
     
     messagebox.showwarning("WARNING!","Your font size depends on the vertical length of rectangular area")
     
-    ans = messagebox.askyesno("Generate Certificate", "Draw two rectangular areas on Image to place your texts")
+    ans = messagebox.askyesno("Generate Certificate", f"Draw {len(val_li_csv[0])} rectangular areas on Image to place your texts")
     if ans==1:
         pass
     else:
         return
     #-----
     def save_certi():
-        font_col = colorchooser.askcolor(title="Choose colour for font")[1]
+        global font_col
         certi_save_add = filedialog.askdirectory(initialdir="C:/Users/")
         for rows in range(len(val_li_csv)):
             pillow_image_copy = pillow_image.copy()
-            txt1_font = ImageFont.truetype("arial.ttf",int(coords[0][2]))
-            txt2_font = ImageFont.truetype("arial.ttf",int(coords[1][2]))
-            txt1 = val_li_csv[rows][0]
-            txt2 = val_li_csv[rows][1]
-            txt1_on_img = ImageDraw.Draw(pillow_image_copy)
-            txt1_on_img.text((coords[0][0],coords[0][1]),txt1,(f"{font_col}"),font=txt1_font)
-            txt2_on_img = ImageDraw.Draw(pillow_image_copy)
-            txt2_on_img.text((coords[1][0],coords[1][1]),txt2,(f"{font_col}"),font=txt2_font)
-            pillow_image_copy.save(certi_save_add + f"/certi_{rows + 1}.jpg")
+
+            for colmns in range(len(val_li_csv[0])):
+                txt1 = val_li_csv[rows][colmns]
+                txt1_font = ImageFont.truetype("times.ttf",int(coords[colmns][2]))
+                txt1_on_img = ImageDraw.Draw(pillow_image_copy)
+                txt1_on_img.text((coords[colmns][0],coords[colmns][1]),txt1,(f"{font_col}"),font=txt1_font)
+                
+            pillow_image_copy.save(certi_save_add + f"/{val_li_csv[rows][0]}.jpg")
         
-        messagebox.showinfo("Success!",f"Certificated have been generated successfully! Saved in {certi_save_add}")
+        messagebox.showinfo("Success!",f"Certificates have been generated successfully! Saved in {certi_save_add}")
         reset()
         img_canvas.unbind("<ButtonPress-1>")
         img_canvas.unbind("<B1-Motion>")
         img_canvas.unbind("<ButtonRelease-1>")
     #-------
     def show_pre():
+        global font_col
         print(coords)
         pillow_image_copy = pillow_image.copy()
         #preview-sample
-        txt1_font = ImageFont.truetype("arial.ttf",int(coords[0][2]))
-        txt2_font = ImageFont.truetype("arial.ttf",int(coords[1][2]))
-        txt1 = val_li_csv[0][0]
-        txt2 = val_li_csv[0][1]
-        txt1_on_img = ImageDraw.Draw(pillow_image_copy)
-        txt1_on_img.text((coords[0][0],coords[0][1]),txt1,("black"),font=txt1_font)
-        txt2_on_img = ImageDraw.Draw(pillow_image_copy)
-        txt2_on_img.text((coords[1][0],coords[1][1]),txt2,("black"),font=txt2_font)
-        
+        font_col = colorchooser.askcolor(title="Choose colour for font")[1]
+                
+        for colmns in range(len(val_li_csv[0])):
+            txt1 = val_li_csv[0][colmns]
+            txt1_font = ImageFont.truetype("times.ttf",int(coords[colmns][2]))
+            txt1_on_img = ImageDraw.Draw(pillow_image_copy)
+            txt1_on_img.text((coords[colmns][0],coords[colmns][1]),txt1,(f"{font_col}"),font=txt1_font)
+            
         pillow_image_copy.show(title="Preview")
         ans2 = messagebox.askyesno("Accept Changes?","Do you want to continue with this implementation?")
         if ans2==1:
@@ -449,7 +448,7 @@ def gen_certi():
         txt_y2 = cur_Y/ht_ratio
         rec_txt = img_canvas.create_rectangle(Start_X,Start_Y,cur_X,cur_Y,outline='grey')
         coords.append([txt_x1,txt_y1,txt_y2-txt_y1]) #coords[t] =[x,y,font_size]; t=0,1,..(columns)
-        if len(coords)==2:
+        if len(coords)==len(val_li_csv[0]):
             show_pre()
 
     rec_txt = img_canvas.create_rectangle(0,0,1,1,outline='grey')
